@@ -33,22 +33,34 @@ of radius to start your geodesic integrations at.
 quasikerr.c = main routine
 
 consts.h = constants used by the various routines
+
 equil.c, equil.h, equil_util.c, equil_util.h = routines used to compute the rapidly rotating neutron star
+
 findmodel.c, findmodel.h = routines used to control the star's parameters (like the spin)
+
 interp.c, interp.h = various interpolation routines
+
 makefile = compilation instructions
+
 metric.c, metric.h = the QuasiKerr metric code that Michi Baubock wrote
+
 nrutil.c, nrutil.h = various routines from Numerical Recipes
+
 quadrupole.c, quadrupole.h = routines for computing the quadrupole moment as well as the RNS metric and
 	      Christoffel symbols at any point outside of the star.
+       
 struct.h = definitions for all the structures used in the code
+
 surface.c, surface.h = routines that find the star's surface
 
 References
 
 Laarakkers and Poisson,  "Quadrupole Moments of Rotating Neutron Stars", ApJ 512, 282, 1999
+
 Glampedakis and Babak, "Mapping spacetimes with LISA: inspiral of a test body in a `quasi-Kerr' field", Class. Quatum Grav. 23, 4167, 2006
+
 Baubock, Psaltis, and Ozel, "Narrow Atomic Features from Rapidly Spinning Neutron Stars", ApJ 766, 87, 2013
+
 Pappas and Apostolatos, "Revising the Multipole Moments of Numerical Spacetimes and its Consequences", PRL 108, 231104, 2012
 
 
