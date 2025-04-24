@@ -1,0 +1,2 @@
+#Redshift values on surface (Energy Obs/Energy Emitted) 
+#theta      mu         RNS   Schw(0)   Schw   Kerr    Quasi-K   

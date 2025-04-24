@@ -4,6 +4,7 @@
 #include "nrutil.h"
 #include "consts.h"
 #include "equil_util.h"
+#include "struct.h"
 
 /***************************************************************************/
 /* Routine that locates nearest grid point for a given value.              */
@@ -436,4 +437,151 @@ double interpolate(double *xp, double *yp, double xb)
   return (yb);
 }
 
+double r_surf_sch(NeutronStar *star, int mu_i){
+
+   double r_sch = star->r_surf[mu_i]*star->Mass*G/SQ(C);
+
+   return r_sch;
+}
+
+double r_surf_iso(NeutronStar *star, int mu_i){
+
+   double r_sch = star->r_is_surf[mu_i]*star->Mass*G/SQ(C);
+
+   return r_sch;
+}
+
+double b_extreme_metric(NeutronStar *star, int maxmin, int mu_i){
+
+  double term = exp(-star->metric_surf.rho_surf[mu_i])*r_surf_iso(star, mu_i)*sqrt(1-SQ(star->metric.mu[mu_i]));
+  double b = maxmin*term/(1+maxmin*star->metric_surf.omega_surf[mu_i]*term/sqrt(KAPPA));
+
+  return b;
+}
+
+double v_z(NeutronStar *star, int mu_i){
+
+   double v_z = (star->Omega-star->metric_surf.omega_surf[mu_i]*C/sqrt(KAPPA))*exp(-star->metric_surf.rho_surf[mu_i])*r_surf_iso(star, mu_i)*sqrt(1-SQ(star->metric.mu[mu_i]));
+
+   return v_z;
+}
+
+double v_dopp(NeutronStar *star, int mu_i){
+
+   double v = star->Omega*r_surf_sch(star, mu_i)/sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i)))*sqrt(1-SQ(star->metric.mu[mu_i]));
+
+   return v;
+}
+
+double gamma(NeutronStar *star, int mu_i){
+
+   double gam = 1/sqrt(1-SQ(v_dopp(star, mu_i)/C));
+
+   return gam;
+}
+
+double redshift_metric(NeutronStar *star, double b, int mu_i){
+
+  double z = exp(-(star->metric_surf.gama_surf[mu_i]+star->metric_surf.rho_surf[mu_i])/2)*(1-star->Omega*b/C)/(sqrt(1-SQ(v_z(star, mu_i)/C)))-1;
+  
+  return z;
+}
+
+double redshift_OS(NeutronStar *star, double incl_deg, double b, double phi, double psi, int mu_i){
+   
+   double z_os = 1/(sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i))))*gamma(star, mu_i)*(1-v_dopp(star, mu_i)/C*cos_xi(star, incl_deg, b, phi, psi, mu_i))-1;
+   
+   return z_os;
+}
+
+double redshift_schwarzschild(NeutronStar *star, int mu_i){
+
+   double z_sch = 1/(sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i))))-1;
+   
+   return z_sch;
+}
+
+double redshift_grav_metric(NeutronStar *star, int mu_i){
+
+   double z_grav = exp(-(star->metric_surf.gama_surf[mu_i]+star->metric_surf.rho_surf[mu_i])/2)-1;
+
+   return z_grav;
+}
+
+double redshift_rotation_metric(NeutronStar *star, double b, int mu_i){
+
+   double z_dopp = (1-star->Omega*b/C)/(sqrt(1-SQ(v_z(star, mu_i)/C)))-1;
+
+   return z_dopp;
+}
+
+double b_extreme_OS(NeutronStar *star, int mu_i){
+
+   return r_surf_sch(star, mu_i)/sqrt(1-2*star->Mass*G/(SQ(C)*r_surf_sch(star, mu_i)));
+}
+
+double sin_alpha(NeutronStar *star, double b, int mu_i){
+
+   double sin_alpha = b/r_surf_sch(star, mu_i)*sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i)));
+
+   return sin_alpha;
+}
+
+double psi_integrated(NeutronStar *star, double b, int mu_i){
+
+   double R = r_surf_sch(star, 1);
+   double b_hat = b/R;
+   double M_R = star->Mass*G/(SQ(C)*R);
+
+   int N = 10000;
+   double du = 1/(double)N;
+   double u_array[10000];
+   for (int i=0; i<N; i++){
+      u_array[i] = (i+1/2)*du;
+   }
+
+   double integral = (double)0.5 * du/sqrt(1-SQ(b_hat*u_array[0])*(1-2*M_R*u_array[0]));
+   for (int i=1; i<(N-1); i++){
+      integral += du/sqrt(1-SQ(b_hat*u_array[i])*(1-2*M_R*u_array[i]));
+   }
+   integral += (double)0.5 * du/sqrt(1-SQ(b_hat*u_array[N-1])*(1-2*M_R*u_array[N-1]));
+
+   return b_hat*integral;
+}
+
+double cos_xi(NeutronStar *star, double incl_deg, double b, double phi, double psi, int mu_i){
+
+   if (psi==0) return 0;
+
+   double incl = incl_deg*PI/180;
+
+   return -sin_alpha(star, b, mu_i)*sin(incl)*sin(phi)/sin(psi);
+}
+
+
+double quad_fit(NeutronStar *star){
+
+   double M_R = star->Mass*G/(SQ(C)*r_surf_sch(star, 1));
+   double spn = star->Omega*sqrt(r_surf_sch(star, 1)*SQ(r_surf_sch(star, 1))/(star->Mass*G));
+
+   //printf("M_R = %lf, Omega = %lf\n", M_R, spn);
+
+   double coefs[3][3] = {
+      {  1.27732812e-02, -6.73001462e-03,  6.10940044e-04 },
+      {  8.89623481e-01, -1.17221274e-01, -1.20949781e-01 },
+      {  1.42132492e-01, -6.09362383e-01,  1.81638146e-01 }
+  };
+
+   double quad = 0;
+
+   for (int i=0; i<3; i++){
+
+      for (int j=0; j<3; j++){
+
+         quad += coefs[i][j] * pow(M_R, (double)(-j)) * pow(spn, (double)(2*i));
+      }
+   }
+
+   return quad;
+}
 /*****************/

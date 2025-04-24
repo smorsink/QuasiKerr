@@ -215,6 +215,12 @@ int Surface( EOS *eos, NeutronStar *star){
 	alpha = SurfaceMetric(s_str, star->metric.alpha, s_surf[i], j-1, i);
 	omega = SurfaceMetric(s_str, star->metric.omega, s_surf[i], j-1, i);
 
+  /*Save surface values*/
+  star->metric_surf.gama_surf[i] = gama;
+  star->metric_surf.rho_surf[i] = rho;
+  star->metric_surf.alpha_surf[i] = alpha;
+  star->metric_surf.omega_surf[i] = omega;
+
 	gama_s = SurfaceMetric(s_str,star->metric.gama_s, s_surf[i],j-1,i);
 	rho_s = SurfaceMetric(s_str,star->metric.rho_s, s_surf[i],j-1,i);
 	omega_s = SurfaceMetric(s_str,star->metric.omega_s, s_surf[i],j-1,i);

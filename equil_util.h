@@ -1,3 +1,4 @@
+#include "struct.h"
 
 void hunt(double xx[], int n, double x, int *jlo);
 
@@ -31,3 +32,31 @@ double rtsec_G( double (*func)(double, double),
 double extrapolate(double *s_edge, double *h_edge, double h_end);
 
 double interpolate(double *xp, double *yp, double xb);
+
+double r_surf_sch(NeutronStar *star, int mu_i);
+
+double b_extreme_metric(NeutronStar *star, int maxmin, int mu_i);
+
+double redshift_metric(NeutronStar *star, double b, int mu_i);
+
+double v_z(NeutronStar *star, int mu_i);
+
+double v_dopp(NeutronStar *star, int mu_i);
+
+double gamma(NeutronStar *star, int mu_i);
+
+double redshift_OS(NeutronStar *star, double incl_deg, double b, double phi, double psi, int mu_i);
+
+double redshift_schwarzschild(NeutronStar *star, int mu_i);
+
+double redshift_grav_metric(NeutronStar *star, int mu_i);
+
+double redshift_rotation_metric(NeutronStar *star, double b, int mu_i);
+
+double b_extreme_OS(NeutronStar *star, int mu_i);
+
+double psi_integrated(NeutronStar *star, double b, int mu_i);
+
+double cos_xi(NeutronStar *star, double incl_deg, double b, double phi, double psi, int mu_i);
+
+double quad_fit(NeutronStar *star);

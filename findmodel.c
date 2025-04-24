@@ -380,6 +380,10 @@ int SetUpStar( char eos_file[80],
    *s_surf,
    *r_is_surf,
    *r_surf,
+    *gama_surf,
+    *rho_surf,
+    *alpha_surf,
+    *omega_surf,
     *r_BL_surf,
     *gravity_surf,
    *v_plus,			/* vel. of co-rot. particle wrt ZAMO */
@@ -438,6 +442,11 @@ int SetUpStar( char eos_file[80],
   r_BL_surf = dvector(1,MDIV);
   gravity_surf = dvector(1,MDIV);
 
+  gama_surf = dvector(1,MDIV);
+  rho_surf = dvector(1,MDIV);
+  alpha_surf = dvector(1,MDIV);
+  omega_surf = dvector(1,MDIV);  
+
   v_plus = dvector(1,SDIV);
   v_minus = dvector(1,SDIV);
   dpot_dr_dr = dvector(1,SDIV);
@@ -475,6 +484,11 @@ int SetUpStar( char eos_file[80],
   star->r_surf = r_surf;
   star->r_BL_surf = r_BL_surf;
   star->gravity_surf = gravity_surf;
+
+  star->metric_surf.gama_surf = gama_surf;
+  star->metric_surf.rho_surf = rho_surf;
+  star->metric_surf.alpha_surf = alpha_surf;
+  star->metric_surf.omega_surf = omega_surf;
 
   return 0;
 

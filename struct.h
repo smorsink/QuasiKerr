@@ -26,6 +26,10 @@ typedef struct {
     **alpha_ms, **gama_ms, **rho_ms, **omega_ms;    
 } Metric;
 
+typedef struct {
+  double *gama_surf, *rho_surf, *alpha_surf, *omega_surf;
+} MetricSurf;
+
 typedef struct{
   double *r_BL;       /* Boyer-Lindquist radial coordinates at s-div gridpoints */
   double *r_iso;      /* Isotropic Radial Coordinate */
@@ -40,6 +44,7 @@ typedef struct{
 
 typedef struct {
   Metric metric;               /*All the geometrical information*/
+  MetricSurf metric_surf;
   BLMetric blmetric;           /* Metric and Christoffel Symbols in BL Coordinate */
   double *s_surf;       /*The surface of the star, s(mu)*/
   double *r_is_surf;    /*The surface of the star, r_is(mu), isotropic radius*/
