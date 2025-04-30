@@ -36,8 +36,8 @@
 #define DBL_EPSILON 1e-15
 #endif
 
-#define MDIV 151
-#define SDIV 301
+//#define MDIV 151
+//#define SDIV 301
 
 
 

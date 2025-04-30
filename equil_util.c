@@ -437,7 +437,10 @@ double interpolate(double *xp, double *yp, double xb)
   return (yb);
 }
 
+// Functions to compute different quantities related to redshift
+
 double r_surf_sch(NeutronStar *star, int mu_i){
+   // Schwarzschild radius at a certain mu gridpoint
 
    double r_sch = star->r_surf[mu_i]*star->Mass*G/SQ(C);
 
@@ -445,6 +448,7 @@ double r_surf_sch(NeutronStar *star, int mu_i){
 }
 
 double r_surf_iso(NeutronStar *star, int mu_i){
+   // Isometric radius
 
    double r_sch = star->r_is_surf[mu_i]*star->Mass*G/SQ(C);
 
@@ -452,6 +456,7 @@ double r_surf_iso(NeutronStar *star, int mu_i){
 }
 
 double b_extreme_metric(NeutronStar *star, int maxmin, int mu_i){
+   // b_min (-1) or b_max (+1)
 
   double term = exp(-star->metric_surf.rho_surf[mu_i])*r_surf_iso(star, mu_i)*sqrt(1-SQ(star->metric.mu[mu_i]));
   double b = maxmin*term/(1+maxmin*star->metric_surf.omega_surf[mu_i]*term/sqrt(KAPPA));
@@ -460,6 +465,7 @@ double b_extreme_metric(NeutronStar *star, int maxmin, int mu_i){
 }
 
 double v_z(NeutronStar *star, int mu_i){
+   // ZAM speed
 
    double v_z = (star->Omega-star->metric_surf.omega_surf[mu_i]*C/sqrt(KAPPA))*exp(-star->metric_surf.rho_surf[mu_i])*r_surf_iso(star, mu_i)*sqrt(1-SQ(star->metric.mu[mu_i]));
 
@@ -467,6 +473,7 @@ double v_z(NeutronStar *star, int mu_i){
 }
 
 double v_dopp(NeutronStar *star, int mu_i){
+   // Doppler speed
 
    double v = star->Omega*r_surf_sch(star, mu_i)/sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i)))*sqrt(1-SQ(star->metric.mu[mu_i]));
 
@@ -474,20 +481,23 @@ double v_dopp(NeutronStar *star, int mu_i){
 }
 
 double gamma(NeutronStar *star, int mu_i){
+   // Lorentz gamma factor
 
    double gam = 1/sqrt(1-SQ(v_dopp(star, mu_i)/C));
 
    return gam;
 }
 
-double redshift_metric(NeutronStar *star, double b, int mu_i){
+double redshift_metric(NeutronStar *star, double b_z, int mu_i){
+   // RNS redshift with b_z
 
-  double z = exp(-(star->metric_surf.gama_surf[mu_i]+star->metric_surf.rho_surf[mu_i])/2)*(1-star->Omega*b/C)/(sqrt(1-SQ(v_z(star, mu_i)/C)))-1;
+  double z = exp(-(star->metric_surf.gama_surf[mu_i]+star->metric_surf.rho_surf[mu_i])/2)*(1-star->Omega*b_z/C)/(sqrt(1-SQ(v_z(star, mu_i)/C)))-1;
   
   return z;
 }
 
 double redshift_OS(NeutronStar *star, double incl_deg, double b, double phi, double psi, int mu_i){
+   // Oblate Schwarzschild redshift
    
    double z_os = 1/(sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i))))*gamma(star, mu_i)*(1-v_dopp(star, mu_i)/C*cos_xi(star, incl_deg, b, phi, psi, mu_i))-1;
    
@@ -495,6 +505,7 @@ double redshift_OS(NeutronStar *star, double incl_deg, double b, double phi, dou
 }
 
 double redshift_schwarzschild(NeutronStar *star, int mu_i){
+   // Schwarzschild redshift
 
    double z_sch = 1/(sqrt(1-(2*star->Mass*G)/(SQ(C)*r_surf_sch(star, mu_i))))-1;
    
@@ -514,6 +525,8 @@ double redshift_rotation_metric(NeutronStar *star, double b, int mu_i){
 
    return z_dopp;
 }
+
+// Angles and parameters for light curves in Oblate Schwarzshild
 
 double b_extreme_OS(NeutronStar *star, int mu_i){
 
@@ -560,11 +573,10 @@ double cos_xi(NeutronStar *star, double incl_deg, double b, double phi, double p
 
 
 double quad_fit(NeutronStar *star){
+   // Quadrupole moment 3x3 fit
 
    double M_R = star->Mass*G/(SQ(C)*r_surf_sch(star, 1));
    double spn = star->Omega*sqrt(r_surf_sch(star, 1)*SQ(r_surf_sch(star, 1))/(star->Mass*G));
-
-   //printf("M_R = %lf, Omega = %lf\n", M_R, spn);
 
    double coefs[3][3] = {
       {  1.27732812e-02, -6.73001462e-03,  6.10940044e-04 },

@@ -55,6 +55,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     Gamma_P=0.0,
     incl_deg=90,                       /* observer inclination angle */
     eta_bad=3.3,                           /* wrong quadrupole correction */
+    make_map=0,               /* 1 to make redshift map, 0 to skip */
     qscale
    ;
 
@@ -79,18 +80,17 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
   
   FILE *output;
 
-  FILE *surface_out;
-  surface_out = fopen("surface.csv", "w");
-
+  // Stores b=0 and limb redshifts as a function of mu
   FILE *z_out;
   z_out = fopen("redshift.csv", "w");
 
+  // Stores global parameters
   FILE *star_output;
   star_output = fopen("star.csv", "w");
 
+  // Stores redshift maps
   FILE *z_map;
   z_map = fopen("zmap.csv", "w");
-  //setvbuf(z_map, map_buffer, _IONBF, bufsize);
 
   /* READ IN THE COMMAND LINE OPTIONS */
   for(i=1;i<argc;i++) 
@@ -148,7 +148,13 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
 
           case 'p':
   /* CHOOSE QUADRUPOLE CORRECTION */
+  // currently not used
   sscanf(argv[i+1],"%lf",&eta_bad);
+  break;
+
+          case 'm':
+  /* CHOOSE whether to compute redshift map */
+  sscanf(argv[i+1],"%lf",&make_map);
   break;
 
       case 'h': 
@@ -249,13 +255,14 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     
     // Example of how to make make the function calls and use of the metric and Christoffel symbols
     // Choose some values of r_BL and theta and then evaluate!
-    printf("\nComparison of QuasiKerr Metric with numerical RNS metric\n");
+    //printf("\nComparison of QuasiKerr Metric with numerical RNS metric\n");
 
+    /*
     output = fopen("redshift.txt","w");
     fprintf(output, "#Redshift values on surface (Energy Obs/Energy Emitted) \n"
 	    );
     fprintf(output, "#theta      mu         RNS   Schw(0)   Schw   Kerr    Quasi-K   \n"
-	    );
+	    );*/
 
     printf("Omega = %lf, Omega_K = %lf\n", star.Omega, star.Omega_K);
 
@@ -264,7 +271,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     // find the approximated quadrupole moment and use it for QK b=0 redshift
     double quad_f = quad_fit(&star);
     double eps_f = -quad_f-SQ(star.j);
-    printf("q fit = %lf, q = %lf, eps fit = %lf, eps = %lf\n", quad_f, star.q, eps_f, star.epsilon);
+    //printf("q fit = %lf, q = %lf, eps fit = %lf, eps = %lf\n", quad_f, star.q, eps_f, star.epsilon);
     rbl = star.r_BL_surf[1];
     mu = star.metric.mu[1];
     theta = acos(mu);
@@ -274,14 +281,15 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
       + pow(star.Omega * G/(C*C*C) * star.Mass, 2) * geps[3] 
       ), 0.5);
 
-    printf("RNS redshift = %lf, QK fit redshift = %lf\n", z_00, (1/z_qkf0)-1);
+    //printf("RNS redshift = %lf, QK fit redshift = %lf\n", z_00, (1/z_qkf0)-1);
 
     double z_pole_error = (z_00-redshift_OS(&star, incl_deg, 0, 0, incl_deg*PI/180, MDIV))/(1+z_00);
     fprintf(star_output, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n", 
     star.e_center*1e15, star.Omega, r_surf_sch(&star, 1), star.Mass, star.Mass*G/(SQ(C)*r_surf_sch(&star, 1)), star.Omega*sqrt(r_surf_sch(&star, 1)*SQ(r_surf_sch(&star, 1))/(star.Mass*G)), z_00, star.q, star.j, star.epsilon, z_pole_error, (1/z_qkf0)-1);
     fclose(star_output);
 
-
+    if (make_map == (double)1){
+      printf("Making redshift map\n");
     double incl = incl_deg*PI/180;
     double *b = (double *)malloc((MDIV+1) * sizeof(double));
     double *psi_b = (double *)malloc((MDIV+1) * sizeof(double));
@@ -437,14 +445,13 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
       //fprintf(output, "%d %lf %lf  %lf %lf %lf %lf %lf \n",
 	      //m, theta, mu, red_rns, red_sch0, red_sch, red_ker, red_quk);
       
-      fprintf(z_out, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
-        star.metric.mu[m], z_0, z_max, z_min, z_sch, z_grav, z_os_0, z_os_max, z_os_min, gam, red_sch0, red_ker, red_quk, red_quk_fit, z_con_min, z_con_max);
+      fprintf(z_out, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
+        star.metric.mu[m], z_0, z_max, z_min, z_sch, z_grav, z_os_0, z_os_max, z_os_min, gam, red_ker, red_quk, red_quk_fit, z_con_min, z_con_max);
       fflush(z_out);
       //if (m==MDIV) printf("first iteration finished\n");
       //else printf("iteration finished\n");
     }
 
-    fclose(surface_out);
     fclose(z_out);
 
     // map of southern hemisphere
@@ -504,6 +511,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     free(psi_b);
     free(zqk_arr);
     free(zqkb_arr);
+    }
 
   return 0;
 }
