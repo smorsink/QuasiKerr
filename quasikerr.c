@@ -64,11 +64,12 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     gsch[5],  // Schwarzschild metric tensor components
     gmunu[5], // Kerr metric tensor components
     geps[5],  // Quasi-Kerr metric tensor components
+    geps_bad[5],
     geps_fit[5],
     GammaSch[4][4][4], // Christoffel symbols for Schwarzschild
     Gamma[4][4][4],    // Christoffel symbols for Kerr
     GammaEps[4][4][4]; // Christoffel symbols for Quasi-Kerr
-  double red_rns, red_sch0, red_sch, red_ker, red_quk, red_quk_fit; // Redshifts for rns, Schwarzschild, Kerr and Quasi-Kerr
+  double red_rns, red_sch0, red_sch, red_ker, red_quk, red_quk_bad, red_quk_fit; // Redshifts for rns, Schwarzschild, Kerr and Quasi-Kerr
 
   double mu, theta, epsilon;
 
@@ -288,6 +289,8 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     star.e_center*1e15, star.Omega, r_surf_sch(&star, 1), star.Mass, star.Mass*G/(SQ(C)*r_surf_sch(&star, 1)), star.Omega*sqrt(r_surf_sch(&star, 1)*SQ(r_surf_sch(&star, 1))/(star.Mass*G)), z_00, star.q, star.j, star.epsilon, z_pole_error, (1/z_qkf0)-1);
     fclose(star_output);
 
+    printf("M/R = %lf, Omega_bar = %lf, z = %lf\n", star.Mass*G/(SQ(C)*r_surf_sch(&star, 1)), star.Omega*sqrt(r_surf_sch(&star, 1)*SQ(r_surf_sch(&star, 1))/(star.Mass*G)), z_00);
+
     if (make_map == (double)1){
       printf("Making redshift map\n");
     double incl = incl_deg*PI/180;
@@ -295,8 +298,9 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     double *psi_b = (double *)malloc((MDIV+1) * sizeof(double));
     double *zqk_arr = (double *)malloc((MDIV+1) * sizeof(double));
     double *zqkb_arr = (double *)malloc((MDIV+1) * sizeof(double));
+    double *zqkf_arr = (double *)malloc((MDIV+1) * sizeof(double));
     double nothing = 0;
-    if (b == NULL || psi_b == NULL || zqk_arr == NULL || zqkb_arr == NULL) {
+    if (b == NULL || psi_b == NULL || zqk_arr == NULL || zqkf_arr == NULL) {
     fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
     }
@@ -319,6 +323,8 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
 
       // geps stores the metric with nonzero epsilon
       metric(rbl, theta, geps, star.j, epsilon);
+
+      metric(rbl, theta, geps_bad, star.j, SQ(star.j)*eta_bad);
 
       metric(rbl, theta, geps_fit, star.j, -quad_fit(&star)-SQ(star.j));
 
@@ -349,13 +355,19 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
 			     + pow(star.Omega * G/(C*C*C) * star.Mass, 2) * geps[3] 
 			     ), 0.5);
 
+      red_quk_bad = pow( -1.0 * (geps_bad[0] +
+            2 * star.Omega * G/(C*C*C) * star.Mass * geps_bad[4]
+            + pow(star.Omega * G/(C*C*C) * star.Mass, 2) * geps_bad[3] 
+            ), 0.5);
+
       red_quk_fit = pow( -1.0 * (geps_fit[0] +
 			     2 * star.Omega * G/(C*C*C) * star.Mass * geps_fit[4]
 			     + pow(star.Omega * G/(C*C*C) * star.Mass, 2) * geps_fit[3] 
 			     ), 0.5);   
 
       zqk_arr[m] = red_quk;
-      zqkb_arr[m] = red_quk_fit;
+      zqkb_arr[m] = red_quk_bad;
+      zqkf_arr[m] = red_quk_fit;
       
       
       if (m==1){
@@ -430,7 +442,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
 
         double z_qk = (1/zqk_arr[m])*dopp_angle-1;
 
-        double z_qk_bad = (1/zqkb_arr[m])*dopp_angle-1;
+        double z_qk_bad = (1/zqkf_arr[m])*dopp_angle-1;
 
         fprintf(z_map, "%lf, %lf, %lf, %lf, %lf, %lf\n", star.metric.mu[m], phi, z_os, z_con, z_qk, z_qk_bad);
         fflush(z_map);
@@ -445,8 +457,8 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
       //fprintf(output, "%d %lf %lf  %lf %lf %lf %lf %lf \n",
 	      //m, theta, mu, red_rns, red_sch0, red_sch, red_ker, red_quk);
       
-      fprintf(z_out, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
-        star.metric.mu[m], z_0, z_max, z_min, z_sch, z_grav, z_os_0, z_os_max, z_os_min, gam, red_ker, red_quk, red_quk_fit, z_con_min, z_con_max);
+      fprintf(z_out, "%lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf, %lf\n",
+        star.metric.mu[m], z_0, z_max, z_min, z_sch, z_grav, z_os_0, z_os_max, z_os_min, gam, red_ker, red_quk, red_quk_bad, red_quk_fit, z_con_min, z_con_max);
       fflush(z_out);
       //if (m==MDIV) printf("first iteration finished\n");
       //else printf("iteration finished\n");
@@ -498,7 +510,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
 
         double z_qk = (1/zqk_arr[m])*dopp_angle-1;
 
-        double z_qk_bad = (1/zqkb_arr[m])*dopp_angle-1;
+        double z_qk_bad = (1/zqkf_arr[m])*dopp_angle-1;
 
         fprintf(z_map, "%lf, %lf, %lf, %lf, %lf, %lf\n", -star.metric.mu[m], phi, z_os, z_con, z_qk, z_qk_bad);
         fflush(z_map);
@@ -510,7 +522,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     free(b);
     free(psi_b);
     free(zqk_arr);
-    free(zqkb_arr);
+    free(zqkf_arr);
     }
 
   return 0;
