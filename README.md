@@ -1,9 +1,9 @@
 # QuasiKerr with redshifts
-Computes the RNS metric and the QuasiKerr Metric with various redshift values, with the option to compute redshift maps from different approximations for the zero-angular momentum-redshift and Oblate Schwarzschild light curves.
+Computes the RNS metric and the QuasiKerr Metric with various redshift values, with the option to compute redshift maps from different approximations for the zero-angular momentum-redshift, and using Oblate Schwarzschild light curves.
 
 This is a set of C routines that compute the structure of a rapidly rotating star in order to compare its properties (including geodesics and redshift approximations) with a similar star computed in the quasikerr or oblate Schwarzschild approximations.
 
-It also includes a Python file to compile, read, fit to and plot data sets computed with QuasiKerr, as well as the equations of state used in the data sets, in the 'compose' folder.
+It also includes a Python file to compile, read, fit to and plot data sets computed with these routines, as well as the equations of state used in the data sets, in the 'compose' folder.
 
 Redshifts are stored and plotted as 'z' instead of '1+z' or '1/(1+z)'
 
