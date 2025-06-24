@@ -300,6 +300,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
     double *zqkb_arr = (double *)malloc((MDIV+1) * sizeof(double));
     double *zqkf_arr = (double *)malloc((MDIV+1) * sizeof(double));
     double nothing = 0;
+    double j_bad = 0.357;
     if (b == NULL || psi_b == NULL || zqk_arr == NULL || zqkf_arr == NULL) {
     fprintf(stderr, "Memory allocation failed\n");
     exit(EXIT_FAILURE);
@@ -324,7 +325,7 @@ int main(int argc, char **argv)     /* Number of command line arguments, Command
       // geps stores the metric with nonzero epsilon
       metric(rbl, theta, geps, star.j, epsilon);
 
-      metric(rbl, theta, geps_bad, star.j, SQ(star.j)*eta_bad);
+      metric(rbl, theta, geps_bad, star.j, SQ(j_bad)*eta_bad);
 
       metric(rbl, theta, geps_fit, star.j, -quad_fit(&star)-SQ(star.j));
 
